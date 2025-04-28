@@ -29,8 +29,8 @@ export const flash = async (
   const transport = new Transport(port);
   const esploader = new ESPLoader({
     transport,
-    baudrate: manifest.baud_rate ?? 115200,
-    romBaudrate: manifest.baud_rate ?? 115200,
+    baudrate: manifest.flash_baud_rate ?? 115200,
+    romBaudrate: 115200,
     enableTracing: false,
   });
 
@@ -215,12 +215,9 @@ export const flash = async (
       percentage: 100,
     },
   });
-
   await hardReset(transport);
-
   console.log("DISCONNECT");
   await transport.disconnect();
-
   fireStateEvent({
     state: FlashStateType.FINISHED,
     message: "All done!",

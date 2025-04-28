@@ -31,6 +31,7 @@ export interface Manifest {
   /* Time to wait to detect Improv Wi-Fi. Set to 0 to disable. */
   new_install_improv_wait_time?: number;
   baud_rate?: number;
+  flash_baud_rate?: number;
   builds: Build[];
 }
 

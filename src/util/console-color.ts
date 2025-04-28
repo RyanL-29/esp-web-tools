@@ -21,13 +21,28 @@ export class ColoredConsole {
     secret: false,
   };
 
+  private batchInterval: number = 50;
+  public bufferLine: Array<string> = [];
   constructor(public targetElement: HTMLElement) {}
 
   logs(): string {
     return this.targetElement.innerText;
   }
 
-  addLine(line: string) {
+  schedule_batch_add_line() {
+    if (this.bufferLine.length > 0) {
+      const fragment = document.createDocumentFragment();
+      this.bufferLine.forEach(line => {
+        this.addLine(line, fragment)
+      })
+      this.targetElement.appendChild(fragment);
+      this.bufferLine = [];
+    }
+    this.targetElement.scrollTop = this.targetElement.scrollHeight;
+    setTimeout(this.schedule_batch_add_line.bind(this), this.batchInterval);
+  }
+
+  addLine(line: string, target: DocumentFragment) {
     // @ts-expect-error
     const re = /(?:\033|\\033)(?:\[(.*?)[@-~]|\].*?(?:\007|\033\\))/g;
     let i = 0;
@@ -46,7 +61,7 @@ export class ColoredConsole {
 
     const lineSpan = document.createElement("span");
     lineSpan.classList.add("line");
-    this.targetElement.appendChild(lineSpan);
+    target.appendChild(lineSpan);
 
     const addSpan = (content: string) => {
       if (content === "") return;
@@ -179,16 +194,8 @@ export class ColoredConsole {
         }
       }
     }
-    const atBottom =
-      this.targetElement.scrollTop >
-      this.targetElement.scrollHeight - this.targetElement.offsetHeight - 50;
 
     addSpan(line.substring(i));
-
-    // Keep scroll at bottom
-    if (atBottom) {
-      this.targetElement.scrollTop = this.targetElement.scrollHeight;
-    }
   }
 }
 

@@ -91,6 +91,7 @@ export class EwtConsole extends HTMLElement {
   private async _connect(abortSignal: AbortSignal) {
     this.logger.debug("Starting console read loop");
     try {
+      this._console?.schedule_batch_add_line();
       await this.port
         .readable!.pipeThrough(new TextDecoderStream(), {
           signal: abortSignal,
@@ -100,19 +101,19 @@ export class EwtConsole extends HTMLElement {
         .pipeTo(
           new WritableStream({
             write: (chunk) => {
-              this._console!.addLine(chunk.replace("\r", ""));
+              this._console?.bufferLine.push(chunk.replace("\r", ""));
             },
           }),
         );
       if (!abortSignal.aborted) {
-        this._console!.addLine("");
-        this._console!.addLine("");
-        this._console!.addLine("Terminal disconnected");
+        this._console?.bufferLine.push("");
+        this._console?.bufferLine.push("");
+        this._console?.bufferLine.push("Terminal disconnected");
       }
     } catch (e) {
-      this._console!.addLine("");
-      this._console!.addLine("");
-      this._console!.addLine(`Terminal disconnected: ${e}`);
+      this._console?.bufferLine.push("");
+      this._console?.bufferLine.push("");
+      this._console?.bufferLine.push("Terminal disconnected");
     } finally {
       await sleep(100);
       this.logger.debug("Finished console read loop");
@@ -125,7 +126,7 @@ export class EwtConsole extends HTMLElement {
     const encoder = new TextEncoder();
     const writer = this.port.writable!.getWriter();
     await writer.write(encoder.encode(command + "\r\n"));
-    this._console!.addLine(`> ${command}\r\n`);
+    this._console?.bufferLine.push(`> ${command}\r\n`);
     input.value = "";
     input.focus();
     try {
