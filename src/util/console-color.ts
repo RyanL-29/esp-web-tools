@@ -23,10 +23,26 @@ export class ColoredConsole {
 
   private batchInterval: number = 50;
   public bufferLine: Array<string> = [];
-  constructor(public targetElement: HTMLElement) {}
+  private auto_scroll: boolean = true;
+  private prevScrollTop = this.targetElement.scrollTop || window.pageYOffset;
+  constructor(public targetElement: HTMLElement) { 
+    targetElement.addEventListener("scroll", (event) => {
+      const st = this.targetElement.scrollTop;
+      if (st < this.prevScrollTop) {
+        this.auto_scroll = false;
+      }
+      this.prevScrollTop = st <= 0 ? 0 : st;
+    })
+  }
 
   logs(): string {
     return this.targetElement.innerText;
+  }
+
+  is_near_bottom() {
+    if ((this.targetElement.scrollHeight - this.targetElement.scrollTop - this.targetElement.clientHeight) < 50) {
+      this.auto_scroll = true;
+    }
   }
 
   schedule_batch_add_line() {
@@ -38,7 +54,11 @@ export class ColoredConsole {
       this.targetElement.appendChild(fragment);
       this.bufferLine = [];
     }
-    this.targetElement.scrollTop = this.targetElement.scrollHeight;
+    this.is_near_bottom();
+    if (this.auto_scroll) {
+      this.targetElement.scrollTop = this.targetElement.scrollHeight;
+    }
+
     setTimeout(this.schedule_batch_add_line.bind(this), this.batchInterval);
   }
 
