@@ -29,7 +29,7 @@ export const flash = async (
   const transport = new Transport(port);
   const esploader = new ESPLoader({
     transport,
-    baudrate: manifest.flash_baud_rate ?? 115200,
+    baudrate: 115200,
     romBaudrate: 115200,
     enableTracing: false,
   });
