@@ -1,10 +1,16 @@
 import type { InstallButton } from "./install-button.js";
-
+import { serial } from "web-serial-polyfill"; 
 export const connect = async (button: InstallButton) => {
   import("./install-dialog.js");
   let port: SerialPort | undefined;
+  let serial_instance: any;
   try {
-    port = await navigator.serial.requestPort();
+    if (!navigator.serial) {
+      serial_instance = serial;
+    } else {
+      serial_instance = navigator.serial;
+    }
+    port = await serial_instance.requestPort();
   } catch (err: any) {
     if ((err as DOMException).name === "NotFoundError") {
       import("./no-port-picked/index").then((mod) =>
